@@ -6,7 +6,7 @@ Todo: <br />
    &nbsp;&nbsp;&nbsp;&nbsp;[ ] - when register an email is sent out <br /> 
        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ ] - increment number of volunteers by one  <br /> 
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ ] - allow corprate user to register groups  <br /> 
-    &nbsp;&nbsp;&nbsp;&nbsp;[ ] - if number of volunteers have reached the max, remove time slot normal view. Keep in admin/user view.  <br /> 
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ ] - if number of volunteers have reached the max, remove time slot normal view. Keep in admin/user view.  <br /> 
        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ ] - if number of volunteer drops back below the max, place the time slot back in normal view.  <br />  <br /> 
 
 [ ] - External TimeSlot manage system <br /> 
