@@ -16,25 +16,25 @@
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     
     
-        <style>
-          .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-          }
-    
-          @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-              font-size: 3.5rem;
-            }
-          }
-        </style>
-        <!-- Custom styles for this template -->
-        <link href="grid.css" rel="stylesheet">
-      </head>
+    <style>
+        .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        }
+
+        @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+            font-size: 3.5rem;
+        }
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="grid.css" rel="stylesheet">
+</head>
       <body class="py-4">
         <div class="container">
     
@@ -47,16 +47,20 @@
       <table class="sortable" id="myTable2" width="100%">
             <thead>
               <tr>
-                <th onclick="sortTable(0)">Date/Time</th>
-                <th onclick="sortTable(1)">Description</th>
-                <th onclick="sortTable(2)">Activity Level</th>
+                <th onclick="sortTable(0)">Date</th>
+                <th onclick="sortTable(1)">Time</th>
+                <th onclick="sortTable(2)">Description</th>
+                <th onclick="sortTable(3)">Volunteers</th>
+                <th onclick="sortTable(4)">Activity Level</th>
              </tr>
             </thead>
             <tbody>
-                    {% for timeslot in TimeSlots.all %}
+              {% for timeslot in TimeSlots.all %}
               <tr>
-               <td>{{ timeslot.date_time }}</td>
+               <td>{{ timeslot.date_time.date }}</td>
+               <td>{{ timeslot.date_time.time}} - {{ timeslot.end_time }}</td>
                <td>{{ timeslot.description }}</td>
+               <td>{{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</td>
                <td>{{ timeslot.activity_level }}</td>
                </tr>
                {% endfor %}
