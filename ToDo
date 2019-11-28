@@ -1,0 +1,23 @@
+[] - Model modification
+    [] - Event name
+    [] - Location
+        [] - look into google maps api
+
+[] - Integrate sendmail into details so that you can use the detail id to increament the number volunteers
+
+[] - update volunteer numbers
+    [] - If number of volunteers equal total number send them to an error page
+    [] - If number of volunteers equal total number, don’t show it on the line up.
+
+[] - Register people for specific TimeSlots
+    [] - when register is clicked a form on timeslot details allow them to put there email
+        [] - when email is submitted, if username dervived from email is new: 
+            [] - send an email with a temp password, user name, and login link is sent.
+            else:
+            [] - send a confirmation email with Timeslot information.
+
+[] - update Thanks.html
+    [] - Back button
+
+[] - finish user profiles
+    [] - add dashboard with currently registered timeslots

@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 
 # Create your models here.
 class TimeSlot(models.Model):
@@ -14,3 +16,4 @@ class TimeSlot(models.Model):
     description = models.TextField()
     num_signed_up = models.IntegerField(default=0)
     num_needed = models.IntegerField()
+    volunteer = models.ManyToManyField(User)
