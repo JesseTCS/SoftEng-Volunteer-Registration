@@ -24,4 +24,7 @@ urlpatterns = [
     path('thanks/',Registration.views.thanks, name='thanks'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/profile/', Registration.views.nothing, name='profile'),
+    #path('accounts/logout/<str: irrelavant>', Registration.views.logout, name='logout'),
+    path('dashboard/', Registration.views.dashboard, name='dashboard'),
+    path('upload/', Registration.views.timelot_upload, name='upload'),
 ]

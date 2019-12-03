@@ -1,0 +1,14 @@
+{% if messages %}
+    {% for message in messages %}
+        <div>
+            <strong>{{ message|safe }}</strong>
+        </div>
+    {% endfor %}
+{% else %}
+    {{ order }}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Upload">
+    </form>
+{% endif %}

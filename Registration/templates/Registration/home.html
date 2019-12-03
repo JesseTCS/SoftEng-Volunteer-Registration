@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en">
-{% load static %}
+
 
 <table class="sortable" id="myTable2" width="80%" align="center">
   <thead>
     <tr>
+      <th onclick="sortTable(0)">Event Name</th>
       <th onclick="sortTable(0)">Date</th>
-      <th onclick="sortTable(1)">Time</th>
+      <th onclick="sortTable(1)">Time Block</th>
       <th onclick="sortTable(2)">Description</th>
       <th onclick="sortTable(3)">Volunteers</th>
       <th onclick="sortTable(4)">Activity Level</th>
@@ -15,14 +16,17 @@
   </thead>
   <tbody>
     {% for timeslot in TimeSlots.all %}
+    {% if timeslot.num_signed_up != timeslot.num_needed %}
     <tr>
-     <td align="center">{{ timeslot.date_time.date }}</td>
-     <td align="center">{{ timeslot.date_time.time}} - {{ timeslot.end_time }}</td>
-     <td align="center">{{ timeslot.description }}</td>
-     <td align="center">{{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</td>
-     <td align="center">{{ timeslot.activity_level }}</td>
-     <td align="center"><a href="{% url 'details' timeslot.id %}">Register</a></td>
-     </tr>
+      <td align="center">{{ timeslot.Event_Name }}</td>
+      <td align="center">{{ timeslot.date }}</td>
+      <td align="center">{{ timeslot.start_time }} - {{ timeslot.end_time }}</td>
+      <td align="center">{{ timeslot.description }}</td>
+      <td align="center">{{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</td>
+      <td align="center">{{ timeslot.activity_level }}</td>
+      <td align="center"><a href="{% url 'details' timeslot.id %}">Details</a></td>
+    </tr>
+     {% endif %}
      {% endfor %}
   </tbody>
 </table>

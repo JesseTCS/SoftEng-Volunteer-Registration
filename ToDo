@@ -3,11 +3,11 @@
     [] - Location
         [] - look into google maps api
 
-[] - Integrate sendmail into details so that you can use the detail id to increament the number volunteers
+[X] - Integrate sendmail into details so that you can use the detail id to increament the number volunteers
 
-[] - update volunteer numbers
-    [] - If number of volunteers equal total number send them to an error page
-    [] - If number of volunteers equal total number, don’t show it on the line up.
+[X] - update volunteer numbers
+    [X] - If number of volunteers equal total number send them to an error page
+    [X] - If number of volunteers equal total number, don’t show it on the line up.
 
 [] - Register people for specific TimeSlots
     [] - when register is clicked a form on timeslot details allow them to put there email
@@ -21,3 +21,7 @@
 
 [] - finish user profiles
     [] - add dashboard with currently registered timeslots
+
+[] - figure out how to uncouple username and email.
+
+TimeSlot.objects.create(num_needed=24)

@@ -5,11 +5,22 @@
 <br>Slots available: {{ TimeSlot.num_signed_up }}/{{ TimeSlot.num_needed }}</br>
 
 <!--User input email box. Only takes emails. Uses EmailForm class from forms. 
-    Uses djangos built in cross site request forgery protection function to increase protection. -->
-<form action='/thanks/' method="post">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit">
+    Uses djangos built in cross site request forgery protection function to increase protection. action='/thanks/' -->
+{%if invalid %}
+    <script>alert('This timeslot is unavailable')</script>
+{% endif %}
+{% if not user.is_authenticated %}
+<form method="post">
+{% csrf_token %}
+{{ form }}
+<input type="submit" value="Submit">
 </form>
+{% else %}
+<form method="post">
+        {% csrf_token %}
+        <input id="Enter_your_email_to_register" type="hidden" name="Username" value="{{ user.username }}@">
+<input type="submit" value="Submit">
+</form>
+{% endif %}
 
 <a href="{% url 'home' %}">back</a>
