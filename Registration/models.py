@@ -15,6 +15,7 @@ class Address(models.Model):
     address2 = models.CharField(
         "Address line 2",
         max_length=1024,
+        null = True
     )
 
     zip_code = models.CharField(
@@ -27,10 +28,18 @@ class Address(models.Model):
         max_length=1024,
     )
 
+    state = models.CharField(
+        "State",
+        max_length=1024,
+        null = True
+    )
+
     country = models.CharField(
         "Country",
         max_length=3,
     )
+    def __str__(self):
+        return self.address1 + ' ' + self.city + ' ' + self.state + ' ' + self.zip_code
 class TimeSlot(models.Model):
     Event_Name = models.CharField(max_length=100, default='Event')
     ACTIVITY_CHOICES = (

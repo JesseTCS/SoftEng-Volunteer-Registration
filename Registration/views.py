@@ -4,8 +4,8 @@ from django.http import HttpResponseRedirect
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import TimeSlot
-from .forms import EmailForm, UserForm, TimeForm, csvForm, addressForm
+from .models import TimeSlot, Address
+from .forms import EmailForm, UserForm, TimeForm, csvForm, timeslotForm
 from datetime import datetime
 import random, string, csv, io
 
@@ -44,7 +44,7 @@ def details(request, id):
     return render(request, 'Registration/detail.html', {'TimeSlot': TimeSlot_detail, 'form':form, 'invalid':invalid})
 
 def thanks(request):
-    return render(request, 'Registration/thanks.html', {'form':form})
+    return render(request, 'Registration/thanks.html')
 
 
 def sendemail(userAccount,timeslot,tempPassword=0,newUser=False):
@@ -95,7 +95,7 @@ def loggedIn(request):
 def userExists(request):
     form = EmailForm(request.POST)
     if form.is_valid():
-        email = form.cleaned_data['Enter your email to register']
+        email = form.cleaned_data['Enter_your_email_to_register']
         try:
             userAccount = User.objects.get(email=email)
             return True
@@ -117,7 +117,7 @@ def registerLoggedInUser(request, timeslot):
 def registerExistingUser(request, timeslot):
     form = EmailForm(request.POST)
     if form.is_valid():
-        email = form.cleaned_data['Enter your email to register']
+        email = form.cleaned_data['Enter_your_email_to_register']
         userAccount = User.objects.get(email=email)
         if verifyTimeSlotAvailability(userAccount, timeslot):
             timeslot.volunteer.add(userAccount)
@@ -129,7 +129,7 @@ def registerExistingUser(request, timeslot):
 def registerNewUser(request, timeslot):
     form = EmailForm(request.POST)
     if form.is_valid():
-        email = form.cleaned_data['Enter your email to register']
+        email = form.cleaned_data['Enter_your_email_to_register']
         userAndPass = createUser(email)
         userAccount = userAndPass[0]
         tempPassword = userAndPass[1]
@@ -140,7 +140,7 @@ def registerNewUser(request, timeslot):
         else:
             return False
 
-def nothing(request):
+def profile(request):
     return render(request, 'Registration/profile.html')
 
 @login_required
@@ -168,14 +168,20 @@ def logout(request):
 def timelot_upload(request):
     template = 'Registration/upload.html'
     form = csvForm()
+    form_web = timeslotForm()
+    success = 'Submission Successful'
     prompt = {
         'order': 'Order of csv should be event name, date (eg. Jan 01, 1960), start time (eg. 6:54 pm), end time, activity level (L,M,H), description, number of needed, v',
-        'form':form
+        'form':form,
+        'form_web':form_web,
+        'success':success
     }
-    date_format = '%b-%d-%y'
-    time_format = '%I:%M %p'
     if request.method == 'GET':
         return render(request, template, prompt)
+    context={}
+    if not request.FILES:
+        create_time_slot(request)
+        return render(request, template, context)
     csv_file = request.FILES['csv']
     if not csv_file.name.endswith('.csv'):
         messages.error(request, 'This is not a csv file')
@@ -183,14 +189,110 @@ def timelot_upload(request):
     io_string = io.StringIO(data_set)
     next(io_string)
     for column in csv.reader(io_string, delimiter=',', quotechar="|"):
-        create = TimeSlot.objects.update_or_create(
-            Event_Name=column[0],
-            date=datetime.strptime(column[1], date_format),
-            start_time=datetime.strptime(column[2], time_format),
-            end_time=datetime.strptime(column[3], time_format),
-            description=column[4],
-            num_needed=int(column[5]),
-            activity_level=column[6],
-        )
-    context={}
+        create_time_slot(column=True, column_data=column)
     return render(request, template, context)
+
+def create_time_slot(request = False, column = False, column_data = False):
+        if column:
+            create_time_slot_csv(column_data)
+        else:
+            create_time_slot_web(request)
+
+def create_time_slot_csv(column_data):
+    date_format = '%b-%d-%y'
+    time_format = '%I:%M %p'
+    Event_Name=column_data[0]
+    date=datetime.strptime(column_data[1], date_format)
+    start_time=datetime.strptime(column_data[2], time_format)
+    end_time=datetime.strptime(column_data[3], time_format)
+    description=column_data[4]
+    num_needed=int(column_data[5])
+    activity_level=column_data[6]
+    address1 = column_data[7]
+    address2 = column_data[8]
+    city = column_data[9]
+    state = column_data[10]
+    zip_code = column_data[11]
+    country = column_data[12]
+    address = create_address(address1, address2, city, state, zip_code, country)
+    if start_time<end_time:
+        if TimeSlot.objects.filter(Event_Name=Event_Name, date=date, start_time=start_time, address=address):
+            timeslot = TimeSlot.objects.filter(Event_Name=Event_Name, date=date, start_time=start_time, address=address)[0]
+            update_existing_time_slot(timeslot, Event_Name, date, start_time, end_time, description, num_needed, activity_level, address)
+        if check_time_slot_availablity(date,start_time,end_time,address):
+            create = TimeSlot.objects.update_or_create(
+                Event_Name=Event_Name,
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+                description=description,
+                num_needed=num_needed,
+                activity_level=activity_level,
+                address = address
+            )
+
+
+def create_time_slot_web(request):
+    form = timeslotForm(request.POST)
+    if form.is_valid():
+        Event_Name = form.cleaned_data['Event_Name']
+        date = form.cleaned_data['date']
+        start_time = form.cleaned_data['start_time']
+        end_time = form.cleaned_data['end_time']
+        activity_level = form.cleaned_data['activity_level']
+        description = form.cleaned_data['description']
+        num_needed = form.cleaned_data['num_needed']
+        address1 = form.cleaned_data['address1']
+        address2 = form.cleaned_data['address2']
+        city = form.cleaned_data['city']
+        state = form.cleaned_data['state']
+        zip_code = form.cleaned_data['zip_code']
+        country = form.cleaned_data['country']
+        address = create_address(address1, address2, city, state, zip_code, country)
+        if start_time<end_time:
+            if TimeSlot.objects.filter(Event_Name=Event_Name, date=date, start_time=start_time, address=address):
+                timeslot = TimeSlot.objects.filter(Event_Name=Event_Name, date=date, start_time=start_time, address=address)[0]
+                update_existing_time_slot(timeslot, Event_Name, date, start_time, end_time, description, num_needed, activity_level, address)
+            if check_time_slot_availablity(date,start_time,end_time,address):
+                create = TimeSlot.objects.update_or_create(
+                    Event_Name=Event_Name,
+                    date=date,
+                    start_time=start_time,
+                    end_time=end_time,
+                    description=description,
+                    num_needed=num_needed,
+                    activity_level=activity_level,
+                    address = address
+                )
+
+
+def create_address(address1=None,address2=None,city=None,state=None,zip_code=None,country=None):
+    create = Address.objects.update_or_create(
+        address1 = address1,
+        address2 = address2,
+        city = city,
+        state = state,
+        zip_code = zip_code,
+        country = country
+    )
+    return create[0]
+
+def update_existing_time_slot(timeslot, Event_Name, date, start_time, end_time, description, num_needed, activity_level, address):
+    timeslot.Event_Name=Event_Name,
+    timeslot.date=date,
+    timeslot.start_time=start_time,
+    timeslot.end_time=end_time,
+    timeslot.description=description,
+    timeslot.num_needed=num_needed,
+    timeslot.activity_level=activity_level,
+    timeslot.address = address
+
+def check_time_slot_availablity(date,start_time,end_time,address):
+    same_date_and_address_time_slot = TimeSlot.objects.filter(date=date, address=address)
+    for timeslot in same_date_and_address_time_slot:
+        if timeslot.start_time > start_time.time() and timeslot.start_time > end_time.time():
+            return True
+        elif timeslot.end_time < start_time.time() and timeslot.end_time < end_time.time():
+            return True
+        return False
+    return True

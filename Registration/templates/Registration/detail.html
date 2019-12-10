@@ -1,3 +1,6 @@
+{% extends 'Registration/base.html' %}
+
+{% block content %}
 <br>Date/Time: {{ TimeSlot.date_time }}</br>
 <br>Description: {{ TimeSlot.description }}</br>
 <br>Activity Level: {{ TimeSlot.activity_level }}</br>
@@ -22,5 +25,4 @@
 <input type="submit" value="Submit">
 </form>
 {% endif %}
-
-<a href="{% url 'home' %}">back</a>
+{% endblock %}

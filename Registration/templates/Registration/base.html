@@ -1,0 +1,12 @@
+{% if user.is_authenticated %}
+<a href="{% url 'home' %}"><button type="home">home</button></a>
+<a href="{% url 'dashboard' %}"><button type="{{ user.username }}">{{ user.username }}</button></a>
+<a href="{% url 'profile' %}"><button type="My Account">My Account</button></a>
+<a href="{% url 'logout' %}"><button type="logout">Logout</button></a>
+{% else %}
+<a href="{% url 'home' %}"><button type="home">home</button></a>
+<a href="{% url 'login' %}"><button type="My Account">login</button></a>
+{% endif %}
+
+{% block content %}
+{% endblock %}
