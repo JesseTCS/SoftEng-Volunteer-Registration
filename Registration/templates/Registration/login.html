@@ -1,6 +1,7 @@
-{% extends 'Registration/base.html' %}
+{% extends 'Registration/base3.html' %}
 
 {% block content %}
+
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
 {% endif %}
@@ -13,7 +14,9 @@
     <p>Please login to see this page.</p>
     {% endif %}
 {% endif %}
-
+<br>
+<br>
+<div align='center'>
 <form method="post" action="{% url 'login' %}">
 {% csrf_token %}
 <table>
@@ -26,11 +29,14 @@
     <td>{{ form.password }}</td>
 </tr>
 </table>
-
+<br>
 <input type="submit" value="login">
 <input type="hidden" name="next" value="{{ next }}">
 </form>
+</div>
 
 {# Assumes you setup the password_reset view in your URLconf #}
+<br>
+<p><a href="{% url 'create_user' %}">Create User Account</a></p>
 <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
 {% endblock %}

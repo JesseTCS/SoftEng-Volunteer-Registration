@@ -1,3 +1,9 @@
+from Registration.views import *
+user_account = User.objects.get(username='jessethomas88')
+custom_user = CustomUser.objects.get(user_account=user_account)
+custom_user.delete()
+
+
 This is basically scratch paper for html code.
 
 

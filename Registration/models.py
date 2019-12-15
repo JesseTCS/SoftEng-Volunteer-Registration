@@ -38,10 +38,36 @@ class Address(models.Model):
         "Country",
         max_length=3,
     )
+
     def __str__(self):
         return self.address1 + ' ' + self.city + ' ' + self.state + ' ' + self.zip_code
+
+class PhoneNumber(models.Model):
+    area_code = models.CharField(max_length=3)
+    numbers1 = models.CharField(max_length=3)
+    numbers2 = models.CharField(max_length=4)
+
+    def __str__(self):
+        return str(self.area_code) + '-' + str(self.numbers1) + '-' + str(self.numbers2)
+
+class CustomUser(models.Model):
+    user_account = models.ForeignKey(User, related_name='user', null=True, on_delete=models.SET_NULL)
+    phone_number = models.ManyToManyField(PhoneNumber, related_name='phone_number')
+    birthday = models.DateField(null=True)
+    def __str__(self):
+        return self.user_account.username
+
+class Business(models.Model):
+    business_name = models.CharField(max_length=100)
+    address = models.ForeignKey(Address, null=True, on_delete=models.SET_NULL)
+    corporate_users = models.ManyToManyField(CustomUser)
+    opt_in = models.ManyToManyField(CustomUser, related_name='opt_in')
+    phone_number = models.ManyToManyField(PhoneNumber)
+    
+    def __str__(self):
+        return self.business_name
 class TimeSlot(models.Model):
-    Event_Name = models.CharField(max_length=100, default='Event')
+    event_name = models.CharField(max_length=100, default='Event')
     ACTIVITY_CHOICES = (
         ('L', 'Low'),
         ('M', 'Medium'),
@@ -55,7 +81,12 @@ class TimeSlot(models.Model):
     description = models.TextField(blank=True)
     num_signed_up = models.IntegerField(default=0)
     num_needed = models.IntegerField()
-    volunteer = models.ManyToManyField(User)
-    
+    volunteer = models.ManyToManyField(CustomUser)
+    user = models.ManyToManyField(User)
+    corporate_registered_users = models.ManyToManyField(CustomUser, related_name='corporate_registered_users')
+    business_name = models.ForeignKey(Business, null=True, on_delete=models.SET_NULL)
+
     def __str__(self):
-        return self.Event_Name
+        return self.event_name
+    
+

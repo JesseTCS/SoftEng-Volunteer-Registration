@@ -1,39 +1,14 @@
-{% extends 'Registration/base.html' %}
+{% extends 'Registration/base3.html' %}
 
 {% block content %}
-<div>
+<br>
+<h3>Upload a csv</h3>
+    {{ order_message_0 }}
     <br>
-<form method="post">
-    {% csrf_token %}
-    Event Name: {{ form_web.Event_Name }}<br>
-    Date: (eg: Jan-01-19) {{ form_web.date }}<br>
-    Start Time: (eg: 07:00 PM) {{ form_web.start_time }}
-    End Time: (eg: 08:00 PM) {{ form_web.end_time }}<br>
-    Description: {{ form_web.description }}<br>
-    Number of Volunteers Needed: {{ form_web.num_needed }}
-    Activity Level: {{ form_web.activity_level }}<br>
-    Address 1: {{ form_web.address1 }}
-    Address 2: {{ form_web.address2 }}<br>
-    City: {{ form_web.city }}<br>
-    State: {{ form_web.state }}
-    Zip Code: {{ form_web.zip_code }}<br>
-    County: {{ form_web.country }}<br>
-    <input type="submit" value="Submit">
-</form>
-</div>
-<br>
-{{ success }}
-<br>
-<br>
-
-{% if messages %}
-    {% for message in messages %}
-        <div>
-            <strong>{{ message|safe }}</strong>
-        </div>
-    {% endfor %}
-{% else %}
+    <br>
+    <div class="text-left container-sm">
     {{ order }}
+    </div>
     <br>
     <br>
     <form method="post" enctype="multipart/form-data">
@@ -41,5 +16,121 @@
         {{ form }}
         <input type="submit" value="Upload">
     </form>
+<br>
+<h3>or input times manually below:</h3>
+<div = class='text-left container-sm'>
+    <br>
+<form method="post">
+    {% csrf_token %}
+    <div align='center'>
+    <table>
+        <tr>
+            <td><h3>Timeslot Information:</h3></td>
+        </tr>
+        <tr>
+            <td>{{ form_web.event_name.label_tag }}</td>
+            <td>{{ form_web.event_name }}</td>
+        </tr>
+        <tr>
+            <td>{{ form_web.date.label_tag }}</td>
+            <td>{{ form_web.date }}</td>
+        </tr>
+        <tr>
+            <td>{{ form_web.start_time.label_tag }}</td>
+            <td>{{ form_web.start_time }}</td>
+        </tr>
+        <tr>
+            <td>{{ form_web.end_time.label_tag }}</td>
+            <td>{{ form_web.end_time }}</td>
+        </tr>
+        <tr>
+                <td>{{ form_web.activity_level.label_tag }}</td>
+                <td>{{ form_web.activity_level }}</td>
+            </tr>
+            <tr>
+                <td>{{ form_web.description.label_tag }}</td>
+                <td>{{ form_web.description }}</td>
+            </tr>
+            <tr>
+                <td>{{ form_web.num_needed.label_tag }}</td>
+                <td>{{ form_web.num_needed }}</td>
+            </tr>
+            <tr>
+                <td>{{ form_web.address1.label_tag }}</td>
+                <td>{{ form_web.address1 }}</td>
+            </tr>
+            <tr>
+                    <td>{{ form_web.address2.label_tag }}</td>
+                    <td>{{ form_web.address2 }}</td>
+                </tr>
+                <tr>
+                        <td>{{ form_web.city.label_tag }}</td>
+                        <td>{{ form_web.city }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form_web.state.label_tag }}</td>
+                        <td>{{ form_web.state }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form_web.zip_code.label_tag }}</td>
+                        <td>{{ form_web.zip_code }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form_web.country.label_tag }}</td>
+                        <td>{{ form_web.country }}</td>
+                    </tr>
+                    
+                    <tr>
+                            <td><h3>Business Information:</h3></td>
+                    
+                    </tr>
+                    <td>{{ form_web.business_name.label_tag }}</td>
+                    <td>{{ form_web.business_name}}</td>
+                </tr>
+                <tr>
+                    <td>Phone Number:</td>
+                    <td>{{ form_web.barea_code }}</td>
+                    <td>{{ form_web.bnumbers1 }}</td>
+                    <td>{{ form_web.bnumbers2 }}</td>
+                </tr>
+                <tr>
+                    <td>Address1:</td>
+                    <td>{{ form_web.baddress1 }}</td>
+                </tr>
+                <tr>
+                    <td>Address2:</td>
+                    <td>{{ form_web.baddress2 }}</td>
+                </tr>
+                <tr>
+                        <td>City:</td>
+                        <td>{{ form_web.bcity }}</td>
+                    </tr>
+                    <tr>
+                        <td>State:</td>
+                        <td>{{ form_web.bstate }}</td>
+                    </tr>
+                    <tr>
+                        <td>Zip code:</td>
+                        <td>{{ form_web.bzip_code }}</td>
+                    </tr>
+                    <tr>
+                        <td>Country:</td>
+                        <td>{{ form_web.bcountry }}</td>
+                    </tr>
+    </table>
+        <br>
+    <input type="submit" value="Submit">
+    </div>
+</form>
+</div>
+<br>
+<br>
+<br>
+
+{%if invalid %}
+    <script>alert('{{ error_code }} : {{ timeslot }}')</script>
+{% endif %}
+{%if success %}
+    <script>alert('{{ success_message }}')</script>
 {% endif %}
 {% endblock %}

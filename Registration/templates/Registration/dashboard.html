@@ -1,37 +1,38 @@
-{% extends 'Registration/base.html' %}
+{% extends 'Registration/base3.html' %}
 
 {% block content %}
+<input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names..">
+
 <table class="sortable" id="myTable2" width="80%" align="center">
-    <thead>
-      <tr>
-        <th onclick="sortTable(0)">Event Name</th>
-        <th onclick="sortTable(0)">Date</th>
-        <th onclick="sortTable(1)">Time Block</th>
-        <th onclick="sortTable(2)">Description</th>
-        <th onclick="sortTable(3)">Volunteers</th>
-        <th onclick="sortTable(4)">Activity Level</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
+  <thead>
+    <tr>
+      <th onclick="sortTable(0)">Event Name</th>
+      <th onclick="sortTable(1)">Date</th>
+      <th onclick="sortTable(2)">Time Block</th>
+      <th onclick="sortTable(3)">Area</th>
+      <th onclick="sortTable(4)">Volunteers</th>
+      <th onclick="sortTable(5)">Activity Level</th>
+      <th onclick="sortTable(6)">Business</th>
+   </tr>
+  </thead>
+  <tbody>
       {% for timeslot in user.timeslot_set.all %}
-      {% if timeslot.num_signed_up != timeslot.num_needed %}
       <tr>
-        <td align="center">{{ timeslot.Event_Name }}</td>
+        <td align="center"><a href="{% url 'details' timeslot.id%}">{{ timeslot.event_name }}</a> </td>
         <td align="center">{{ timeslot.date }}</td>
         <td align="center">{{ timeslot.start_time }} - {{ timeslot.end_time }}</td>
-        <td align="center">{{ timeslot.description }}</td>
+        <td align="center">{{ timeslot.address.city }}, {{ timeslot.address.state }}</td>
         <td align="center">{{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</td>
         <td align="center">{{ timeslot.activity_level }}</td>
+        <td align="center">{{ timeslot.business_name }}</td>
         <td align="center">
           <form method="post">
             {% csrf_token %}
-            <input id="Username" type="hidden" name="Username" value="{{ user.username }}">
-            <input id="TimeSlot" type="hidden" name="TimeSlot" value="{{ timeslot.id }}">
+            <input type="hidden" name="unregister" value="{{ user.username }}">
+            <input type="hidden" name="timeslot" value="{{ timeslot.id }}">
             <input type="submit" value="Unregister">
           </form></td>
       </tr>
-        {% endif %}
         {% endfor %}
     </tbody>
   </table>
@@ -94,4 +95,39 @@
                 }
               }
               </script>
+   <script>
+    function myFunction() {
+      // Declare variables 
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("myInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("myTable2");
+      tr = table.getElementsByTagName("tr");
+    
+      // Loop through all table rows, and hide those who don't match the search query
+      for (i = 0; i < tr.length; i++) {
+        td0 = tr[i].getElementsByTagName("td")[0];
+        td1 = tr[i].getElementsByTagName("td")[1];
+        td2 = tr[i].getElementsByTagName("td")[2];
+        td3 = tr[i].getElementsByTagName("td")[3];
+        td4 = tr[i].getElementsByTagName("td")[4];
+        td5 = tr[i].getElementsByTagName("td")[5];
+        td6 = tr[i].getElementsByTagName("td")[6];
+        if (td0 || td1 || td2 || td3 || td4 || td5 || td6) {
+          txtValue0 = td0.textContent || td0.innerText;
+          txtValue1 = td1.textContent || td1.innerText;
+          txtValue2 = td2.textContent || td2.innerText;
+          txtValue3 = td3.textContent || td3.innerText;
+          txtValue4 = td4.textContent || td4.innerText;
+          txtValue5 = td5.textContent || td5.innerText;
+          txtValue6 = td6.textContent || td6.innerText;
+          if (txtValue0.toUpperCase().indexOf(filter) > -1 || txtValue1.toUpperCase().indexOf(filter) > -1 || txtValue2.toUpperCase().indexOf(filter) > -1 || txtValue3.toUpperCase().indexOf(filter) > -1 || txtValue4.toUpperCase().indexOf(filter) > -1 || txtValue5.toUpperCase().indexOf(filter) > -1 || txtValue6.toUpperCase().indexOf(filter) > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    }
+    </script>
 {% endblock %}
