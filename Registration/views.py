@@ -817,3 +817,8 @@ def sendmail(user_account,timeslot,temp_password=0,new_user=False):
     #             invalid = True
     #             return render(request, 'Registration/detail.html', {'TimeSlot': TimeSlot_detail, 'form':form, 'invalid':invalid})
     #{'timeslot': timeslot.display_timeslot, 'form':form, 'invalid':invalid, 'text_area':text_area}
+
+def test(request):
+    template_name = 'Registration/test.html'
+    context={}
+    return render(request, template_name, context)
