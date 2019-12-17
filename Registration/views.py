@@ -324,7 +324,7 @@ def create_user(request):
                 else:
                     phone_number = create_phone_number(phone_number=phone_number)
                     if phone_number == errors()[1]:
-                      error = phone_number  
+                        error = phone_number  
                     else:
                         user_info = create_user_from_create_user(username, email, birthday, phone_number)
                         sendmail(user_account = user_info[0], temp_password = user_info[1], new_user=True)
@@ -333,11 +333,13 @@ def create_user(request):
                         return render(request, template, context)
             else:
                 error = error_0
-            
-            invalid = True
-            context['invalid'] = invalid
-            context['error_code'] = error
-            return render(request, template, context)
+        check = check_birthday_structure(birthday=request.POST['birthday'])
+        if check == errors()[2]:
+            error = check
+        invalid = True
+        context['invalid'] = invalid
+        context['error_code'] = error
+        return render(request, template, context)
     return render(request, template, context)
 
 @permission_required('admin.can_add_log_entry')
@@ -478,6 +480,35 @@ def timelot_upload(request):
     prompt['success'] = success
     return render(request, template, prompt)
 
+def check_birthday_structure(birthday=None):
+    birthday = birthday.split('-')
+    count = 0
+    months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
+    for i in birthday:
+        if count == 0 and len(i) == 3:
+            if i.lower() in months:
+                continue
+            return errors()[2]
+        elif count == 0 and len(i) != 3:
+            return errors()[2]
+        elif count == 1 and len(i) == 2:
+            try:
+                int(i)
+            except:
+                return errors()[2]
+        elif count == 1 and len(i) != 2:
+            return errors()[2]
+        elif count == 2 and len(i) == 2:
+            try:
+                int(i)
+            except:
+                return errors()[2]
+        elif count == 2 and len(i) != 2:
+            return errors()[2]
+        count += 1
+    return True
+        
+
 def mass_update_count(timeslots):
     """
     Updates volunteer count over many timeslots
@@ -603,7 +634,6 @@ def create_phone_number(phone_number=None):
             try:
                 int(i)
             except:
-                
                 return errors()[1]
             area_code = i
         elif count == 1 and len(i) == 3:
@@ -943,7 +973,8 @@ def sendmail(user_account=None,timeslot=None,temp_password=0,new_user=False,grou
 def errors():
     error_code = {
         0: 'Valid',
-        1: 'Invalid Phone Number'
+        1: 'Invalid Phone Number',
+        2: 'Invalid Birthday'
     }
     return error_code
 
