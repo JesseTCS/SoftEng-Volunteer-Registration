@@ -46,12 +46,14 @@
 {% endif %}
 
 {% if request.user|has_group:"Admin" %}
+{% if register_flag %} 
 <form method="post">
         {% csrf_token %}
         <input type="hidden" name="register_group" value="1">
         <input type="hidden" name="username" value="{{ user.username }}">
         <input type="submit" value="Register a group">
 </form>
+{% endif %}
 {% endif %}
 {%if invalid %}
     <script>alert('{{ error_message }} {{ error_code }}')</script>

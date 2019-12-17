@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import TimeSlot, Address, CustomUser, PhoneNumber, Business
+from .models import TimeSlot, Address, CustomUser, PhoneNumber, Business, CurrentTimeSlots
 from .forms import EmailForm, UserForm, TimeForm, csvForm, timeslotForm, Message_Form, createUserForm
 from datetime import datetime
 import random, string, csv, io
@@ -14,7 +14,12 @@ def home(request):
     """
     Used to display the homepage
     """
-    timeslots = all_time_slots=TimeSlot.objects.all()
+    current_timeslots = CurrentTimeSlots.objects.get(current_id = 0)
+    if current_timeslots.last_update < current_timeslots.current_date:
+        current_timeslots.current()
+    timeslots = current_timeslots.current_timeslots.all()
+
+    # timeslots = TimeSlot.objects.all()
     mass_update_count(timeslots)
     return render(request, 'Registration/home.html', {'timeslots': timeslots})
 
@@ -26,6 +31,7 @@ def details(request, id):
     email_form = EmailForm()
     unregister_flag = 0
     register_flag = 0
+    register_group_flag = 1
     error_0 = 'Age Restriction'
     error_1 = 'Email Taken'
     error_2 = 'Timeslot Conlicts with Registered Timeslots'
@@ -36,7 +42,10 @@ def details(request, id):
             if timeslot.user.filter(username=request.user.username):
                 unregister_flag = 1
             else: 
-                register_flag = 1
+                if CurrentTimeSlots.objects.filter(current_timeslots=timeslot):
+                    register_flag = 1
+                    register_group_flag = 1
+
         update_count(timeslot)
         return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag})
     else:
@@ -54,13 +63,29 @@ def details(request, id):
             'unregister_flag':unregister_flag,
             'register_flag': register_flag
             })
-        if 'register' in request.POST:
-            register_flag = 1
-            if timeslot_count_check(timeslot=timeslot):
-                register = registerfunc(request, timeslot)
-                if register == error_2:
-                    invalid = True
-                    return render(
+        if CurrentTimeSlots.objects.filter(current_timeslots=timeslot):
+            if 'register' in request.POST:
+                register_flag = 1
+                if timeslot_count_check(timeslot=timeslot):
+                    register = registerfunc(request, timeslot)
+                    if register == error_2:
+                        invalid = True
+                        return render(
+                        request,
+                        'Registration/detail.html', 
+                        {'timeslot': timeslot,
+                        'email_form': email_form,
+                        'invalid': invalid,
+                        'unregister_flag':unregister_flag,
+                        'register_flag': register_flag,
+                        'error_code': error_2
+                        })
+                    update_count(timeslot)
+                    register_flag = 0
+                    unregister_flag = 1
+                    return redirect('thanks')
+                invalid = True
+                return render(
                     request,
                     'Registration/detail.html', 
                     {'timeslot': timeslot,
@@ -68,13 +93,57 @@ def details(request, id):
                     'invalid': invalid,
                     'unregister_flag':unregister_flag,
                     'register_flag': register_flag,
-                    'error_code': error_2
-                    })
-                update_count(timeslot)
-                register_flag = 0
-                unregister_flag = 1
-                return redirect('thanks')
+                    'error_code': error_3
+                })
+            if 'new_user' in request.POST:
+                if timeslot_count_check(timeslot=timeslot):
+                    register = register_new_user(request, timeslot)
+                    if register == error_0:
+                        invalid = True
+                        return render(
+                        request,
+                        'Registration/detail.html', 
+                        {'timeslot': timeslot,
+                        'email_form': email_form,
+                        'invalid': invalid,
+                        'unregister_flag':unregister_flag,
+                        'register_flag': register_flag,
+                        'error_message': error_message,
+                        'error_code': error_0
+                        })
+                    if register == error_1:
+                        invalid = True
+                        return render(
+                        request,
+                        'Registration/detail.html', 
+                        {'timeslot': timeslot,
+                        'email_form': email_form,
+                        'invalid': invalid,
+                        'unregister_flag':unregister_flag,
+                        'register_flag': register_flag,
+                        'error_message': error_message,
+                        'error_code': error_1
+                        })
+                    return redirect('thanks')
+                    raise Exception('details')
+                invalid = True
+                return render(
+                    request,
+                    'Registration/detail.html', 
+                    {'timeslot': timeslot,
+                    'email_form': email_form,
+                    'invalid': invalid,
+                    'unregister_flag':unregister_flag,
+                    'register_flag': register_flag,
+                    'error_code': error_3
+                })
+            if 'register_group' in request.POST:
+                return redirect('group_register', id)
+
+        else:
             invalid = True
+            unregister_flag = 0
+            register_flag = 0
             return render(
                 request,
                 'Registration/detail.html', 
@@ -85,50 +154,6 @@ def details(request, id):
                 'register_flag': register_flag,
                 'error_code': error_3
             })
-        if 'new_user' in request.POST:
-            if timeslot_count_check(timeslot=timeslot):
-                register = register_new_user(request, timeslot)
-                if register == error_0:
-                    invalid = True
-                    return render(
-                    request,
-                    'Registration/detail.html', 
-                    {'timeslot': timeslot,
-                    'email_form': email_form,
-                    'invalid': invalid,
-                    'unregister_flag':unregister_flag,
-                    'register_flag': register_flag,
-                    'error_message': error_message,
-                    'error_code': error_0
-                    })
-                if register == error_1:
-                    invalid = True
-                    return render(
-                    request,
-                    'Registration/detail.html', 
-                    {'timeslot': timeslot,
-                    'email_form': email_form,
-                    'invalid': invalid,
-                    'unregister_flag':unregister_flag,
-                    'register_flag': register_flag,
-                    'error_message': error_message,
-                    'error_code': error_1
-                    })
-                return redirect('thanks')
-                raise Exception('details')
-            invalid = True
-            return render(
-                request,
-                'Registration/detail.html', 
-                {'timeslot': timeslot,
-                'email_form': email_form,
-                'invalid': invalid,
-                'unregister_flag':unregister_flag,
-                'register_flag': register_flag,
-                'error_code': error_3
-            })
-        if 'register_group' in request.POST:
-            return redirect('group_register', id)
 
 def group_register(request, id):
     timeslot = get_object_or_404(TimeSlot, pk=id)

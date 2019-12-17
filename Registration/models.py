@@ -4,6 +4,8 @@ from django.utils import timezone
 from datetime import datetime
 
 
+
+
 # Create your models here.
 
 class Address(models.Model):
@@ -88,5 +90,29 @@ class TimeSlot(models.Model):
 
     def __str__(self):
         return self.event_name
-    
+
+class CurrentTimeSlots(models.Model):
+    current_id = models.IntegerField(default=0)
+    current_date = models.DateField(auto_now=True)
+    last_update = models.DateField(default='1900-01-02')
+    current_timeslots = models.ManyToManyField(TimeSlot)
+
+    def current_all(self):
+        timeslots = TimeSlot.objects.all()
+        today = datetime.now().date()
+        for i in timeslots:
+            if i.date >= today:
+                self.current_timeslots.add(i)
+            else:
+                self.current_timeslots.remove(i)
+
+    def current(self):
+        all_current = self.current_timeslots.all()
+        today = datetime.now().date()
+        for i in all_current:
+            if i.date >= today:
+                self.current_timeslots.add(i)
+            else:
+                self.current_timeslots.remove(i)
+
 
