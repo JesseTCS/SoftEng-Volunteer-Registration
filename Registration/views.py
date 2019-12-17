@@ -59,6 +59,19 @@ def details(request, id):
     else:
         invalid = False
 
+        if 'remove' in request.POST:
+            remove(timeslot)
+            
+            return redirect('home')
+        
+        if 'remove_volunteer' in request.POST:
+            user_account = User.objects.get(username=request.POST['remove_volunteer'])
+            custom_account = CustomUser.objects.get(user_account=user_account)
+            remove_volunteer(timeslot,custom_account)
+            if request.user.username == user_account.username:
+                register_flag = 1
+            return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag, 'register_group_flag':register_group_flag})
+
         if 'unregister' in request.POST:
             unregister(request, timeslot)
             update_count(timeslot)
@@ -361,7 +374,7 @@ def market(request):
 
     if request.method == 'POST':
         form = Message_Form(request.POST)
-        
+
         if form.is_valid():
             message = form.cleaned_data['message_form']
             m = marketing.objects.all()
@@ -1079,6 +1092,12 @@ def errors():
     #             invalid = True
     #             return render(request, 'Registration/detail.html', {'TimeSlot': TimeSlot_detail, 'form':form, 'invalid':invalid})
     #{'timeslot': timeslot.display_timeslot, 'form':form, 'invalid':invalid, 'text_area':text_area}
+
+def remove(timeslot):
+    timeslot.delete()
+
+def remove_volunteer(timeslot,custom_account):
+    timeslot.volunteer.remove(custom_account)
 
 def test(request):
     template_name = 'Registration/test.html'
