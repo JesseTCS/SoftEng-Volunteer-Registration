@@ -59,6 +59,11 @@ def details(request, id):
     else:
         invalid = False
 
+        if 'remove' in request.POST:
+            remove(timeslot)
+            
+            return redirect('home')
+
         if 'unregister' in request.POST:
             unregister(request, timeslot)
             update_count(timeslot)
@@ -361,7 +366,7 @@ def market(request):
 
     if request.method == 'POST':
         form = Message_Form(request.POST)
-        
+
         if form.is_valid():
             message = form.cleaned_data['message_form']
             m = marketing.objects.all()
@@ -1079,6 +1084,9 @@ def errors():
     #             invalid = True
     #             return render(request, 'Registration/detail.html', {'TimeSlot': TimeSlot_detail, 'form':form, 'invalid':invalid})
     #{'timeslot': timeslot.display_timeslot, 'form':form, 'invalid':invalid, 'text_area':text_area}
+
+def remove(timeslot):
+    timeslot.delete()
 
 def test(request):
     template_name = 'Registration/test.html'

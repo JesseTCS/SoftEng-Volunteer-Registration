@@ -37,6 +37,12 @@
         <input type="hidden" name="username" value="{{ user.username }}">
         <input type="submit" value="Register a group">
 </form>
+<br>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="remove" value="1">
+    <input type="submit" value="remove timeslot">
+</form>
 {% endif %}
 {% endif %}
 {%if invalid %}
