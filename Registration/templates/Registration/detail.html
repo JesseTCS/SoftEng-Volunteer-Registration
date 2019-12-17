@@ -3,15 +3,16 @@
 {% block content %}
 {% load Registration_Extras %}
 <div class="text-left container-sm">
-<br>Event Name: {{ timeslot.event_name }}<br>
-<br>Date: {{ timeslot.date }}</br>
-<br>Time Block: {{ timeslot.start_time }} - {{ timeslot.end_time }}<br>
-<br>Description: {{ timeslot.description }}</br>
-<br>Activity Level: {{ timeslot.activity_level }}</br>
-<br>Slots available: {{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</br>
-<br>
+    <table class="detail">
+        <tr><td><span class="descriptor">Event Name:</span></td> <td>{{ timeslot.event_name }}</td></tr>
+        <tr><td><span class="descriptor">Date:</span></td> <td>{{ timeslot.date }}</td></tr>
+        <tr><td><span class="descriptor">Time Block:</span></td> <td>{{ timeslot.start_time }} - {{ timeslot.end_time }}</td></tr>
+        <tr><td><span class="descriptor">Description</span></td> <td>{{ timeslot.description }}</td></tr>
+        <tr><td><span class="descriptor">Activity Level:</span></td> <td>{{ timeslot.activity_level }}</td></tr>
+        <tr><td><span class="descriptor">Event Name:</span></td> <td>{{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</td></tr>
+    </table>
 {% if not user.is_authenticated %}
-    To register : <a href="{% url 'create_user' %}"><button>Create User Account</button></a>
+    <span class="descriptor">To Register:</span> <a href="{% url 'create_user' %}"><button>Create User Account</button></a>
 {% endif %}
 {% if unregister_flag %}
 <form method="post">
@@ -30,7 +31,7 @@
 {% endif %}
 
 {% if request.user|has_group:"Admin" %}
-{% if register_group_flag %} 
+{% if register_group_flag %}
 <form method="post">
         {% csrf_token %}
         <input type="hidden" name="register_group" value="1">

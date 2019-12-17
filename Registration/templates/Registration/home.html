@@ -13,6 +13,7 @@
       <th onclick="sortTable(4)">Volunteers</th>
       <th onclick="sortTable(5)">Activity Level</th>
       <th onclick="sortTable(6)">Business</th>
+      <th>Details/Sign Up</th>
    </tr>
   </thead>
   <tbody>
@@ -39,7 +40,7 @@
               table = document.getElementById("myTable2");
               switching = true;
               // Set the sorting direction to ascending:
-              dir = "asc"; 
+              dir = "asc";
               /* Make a loop that will continue until
               no switching has been done: */
               while (switching) {
@@ -77,7 +78,7 @@
                   rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                   switching = true;
                   // Each time a switch is done, increase this count by 1:
-                  switchcount ++; 
+                  switchcount ++;
                 } else {
                   /* If no switching has been done AND the direction is "asc",
                   set the direction to "desc" and run the while loop again. */
@@ -89,16 +90,16 @@
               }
             }
             </script>
-    
+
     <script>
         function myFunction() {
-          // Declare variables 
+          // Declare variables
           var input, filter, table, tr, td, i, txtValue;
           input = document.getElementById("myInput");
           filter = input.value.toUpperCase();
           table = document.getElementById("myTable2");
           tr = table.getElementsByTagName("tr");
-        
+
           // Loop through all table rows, and hide those who don't match the search query
           for (i = 0; i < tr.length; i++) {
             td0 = tr[i].getElementsByTagName("td")[0];

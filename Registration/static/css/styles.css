@@ -1,0 +1,66 @@
+th {
+    border-bottom: 1px solid #394548;
+}
+
+tr {
+    padding: 10px;
+    width: auto;
+}
+
+table#myTable2.sortable {
+    padding: 0;
+}
+
+table.sortable tr:nth-child(2n), table.detail tr:nth-child(2n) {
+    background-color: #f0f4f5;
+}
+
+table.detail {
+    width: 100%;
+}
+
+table.detail tr td{
+    width:50%;
+}
+
+td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+button {
+    margin: 10px;
+}
+
+button.btn.btn-secondary {
+    float:right;
+    margin-left: 10px;
+}
+
+input {
+    float:left;
+    margin-left: 10%;
+    margin-bottom: 20px;
+    padding:10px;
+}
+
+span.descriptor {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #394548;
+    margin-right: 5%;
+    padding-right: 5%;
+}
+
+.btn-group {
+    display:block;
+    margin: 0 auto;
+    width:80%;
+    height: 50px;
+    padding-right: 10px;
+}
+
+.container-fluid {
+    width: 100%;
+    margin: 0 auto;
+}
