@@ -63,6 +63,14 @@ def details(request, id):
             remove(timeslot)
             
             return redirect('home')
+        
+        if 'remove_volunteer' in request.POST:
+            user_account = User.objects.get(username=request.POST['remove_volunteer'])
+            custom_account = CustomUser.objects.get(user_account=user_account)
+            remove_volunteer(timeslot,custom_account)
+            if request.user.username == user_account.username:
+                register_flag = 1
+            return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag, 'register_group_flag':register_group_flag})
 
         if 'unregister' in request.POST:
             unregister(request, timeslot)
@@ -1087,6 +1095,9 @@ def errors():
 
 def remove(timeslot):
     timeslot.delete()
+
+def remove_volunteer(timeslot,custom_account):
+    timeslot.volunteer.remove(custom_account)
 
 def test(request):
     template_name = 'Registration/test.html'
