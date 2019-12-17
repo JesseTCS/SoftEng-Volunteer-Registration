@@ -4,6 +4,9 @@
 {%if invalid %}
     <script>alert('{{ error_code }}')</script>
 {% endif %}
+{% if success %}
+<h3>{{ success_message }}</h3>
+{% else %}
 <br>
 <div align='center'>
 <form method="post">
@@ -14,27 +17,22 @@
         <td>{{ create_user_form.username }}</td>
     </tr>
     <tr>
-        <td>{{ create_user_form.password.label_tag }}</td>
-        <td>{{ create_user_form.password }}</td>
-    </tr>
-    <tr>
         <td>{{ create_user_form.email.label_tag }}</td>
         <td>{{ create_user_form.email }}</td>
     </tr>
     <tr>
-        <td>Birthday (eg. Jan-01-2019): </td>
+        <td>Birthday (eg. Jan-01-19): </td>
         <td>{{ create_user_form.birthday }}</td>
     </tr>
     <tr>
-        <td>Phone Number: </td>
-        <td>{{ create_user_form.area_code}}</td>
-        <td>{{ create_user_form.numbers1}}</td>
-        <td>{{ create_user_form.numbers2}}</td>
+        <td>Phone Number (eg. 111-111-1111): </td>
+        <td>{{ create_user_form.phone_number}}</td>
     </tr>
     </table>
     <br>
     <input type="submit" value="create account">
 </form>
 </div>
+{% endif %}
 
 {% endblock %}

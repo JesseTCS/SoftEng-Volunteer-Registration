@@ -1,0 +1,15 @@
+{% extends 'Registration/base3.html' %}
+
+{% block content %}
+<p><h3>{{ prompt }}</h3></p>
+<br>
+<form method="post">
+    {% csrf_token %}
+    Message: {{ form.message_form }}
+    <br>
+    <input type="submit" value="submit">
+</form>
+{%if success %}
+    <script>alert('{{ success }}')</script>
+{% endif %}
+{% endblock %}

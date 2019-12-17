@@ -11,23 +11,7 @@
 <br>Slots available: {{ timeslot.num_signed_up }}/{{ timeslot.num_needed }}</br>
 <br>
 {% if not user.is_authenticated %}
-    <form method="post">
-        {% csrf_token %}
-        To register please enter your email, birthday, and phone number below 
-        <br>
-        <br>Email: 
-        <br>{{ email_form.email }}
-        <br>
-        <br>Birthday(eg. Jan-01-19): 
-        <br>{{ email_form.birthday }}
-        <br>
-        <br>Phone Number: 
-        <br>{{ email_form.area_code }}
-        {{ email_form.numbers1 }}
-        {{ email_form.numbers2 }}
-        <input type="hidden" name="new_user" value='create_from_email'>
-        <input type="submit" value="Submit">
-    </form>
+    To register : <a href="{% url 'create_user' %}"><button>Create User Account</button></a>
 {% endif %}
 {% if unregister_flag %}
 <form method="post">
@@ -46,7 +30,7 @@
 {% endif %}
 
 {% if request.user|has_group:"Admin" %}
-{% if register_flag %} 
+{% if register_group_flag %} 
 <form method="post">
         {% csrf_token %}
         <input type="hidden" name="register_group" value="1">

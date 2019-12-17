@@ -21,7 +21,7 @@ class csvForm(forms.Form):
     csv = forms.FileField()
 
 class Message_Form(forms.Form):
-    message_form = forms.TimeField(widget=forms.Textarea)
+    message_form = forms.CharField(widget=forms.Textarea)
 
 class timeslotForm(forms.Form):
     ACTIVITY_CHOICES = (
@@ -54,14 +54,19 @@ class timeslotForm(forms.Form):
     bcountry = forms.CharField()
 
 class createUserForm(forms.Form):
-    username = forms.CharField(min_length=3)
-    password = forms.CharField(max_length=32, widget=forms.PasswordInput)
-    email = forms.EmailField()
-    birthday = forms.DateField()
+    username = forms.CharField(min_length=3, max_length=150)
+    email = forms.EmailField(max_length=300)
     birthday = forms.DateField(input_formats=['%b-%d-%y'])
-    area_code = forms.CharField(max_length=3, min_length=3)
-    numbers1 = forms.CharField(max_length=3, min_length=3)
-    numbers2 = forms.CharField(max_length=4, min_length=4)
+    phone_number = forms.CharField(min_length=12, max_length=12)
+    # area_code = forms.CharField(max_length=3, min_length=3)
+    # numbers1 = forms.CharField(max_length=3, min_length=3)
+    # numbers2 = forms.CharField(max_length=4, min_length=4)
+
+class checkBoxForm(forms.Form):
+    opt_in = forms.CharField(widget=forms.CheckboxInput())
+
+class optOutForm(forms.Form):
+    opt_out = forms.CharField(widget=forms.CheckboxInput())
 
 class AuthenticationFormWithInactiveUsersOkay(AuthenticationForm):
     def confirm_login_allowed(self, user):

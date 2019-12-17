@@ -115,4 +115,15 @@ class CurrentTimeSlots(models.Model):
             else:
                 self.current_timeslots.remove(i)
 
+class marketing(models.Model):
+    opt_in = models.ManyToManyField(User)
+
+    def initialize(self):
+        users = User.objects.all()
+        for i in users:
+            self.opt_in.add(i)
+    def remove(self, user):
+        self.opt_in.remove(user)
+    def add(self, user):
+        self.opt_in.add(user)
 

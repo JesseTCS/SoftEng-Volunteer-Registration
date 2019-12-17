@@ -11,9 +11,12 @@
         <input type="submit" value="Upload">
     </form>
 {%if invalid %}
-    <script>alert('{{ error_code }} : {{ timeslot }}')</script>
+    <script defer>alert('{{ error_code }} : {{ timeslot }}')</script>
 {% endif %}
 {%if success %}
-    <script>alert('{{ success_message }}')</script>
+    <script defer>alert('{{ success_message }}')</script>
 {% endif %}
+{%if failure%}
+    <script defer>alert('{{ failure_message }}\n{%for i in save_account%}\n{{i.user_account.email}}{%endfor%}')</script>
+{%endif%}
 {% endblock %}

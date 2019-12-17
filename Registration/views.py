@@ -4,8 +4,8 @@ from django.http import HttpResponseRedirect
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import TimeSlot, Address, CustomUser, PhoneNumber, Business, CurrentTimeSlots
-from .forms import EmailForm, UserForm, TimeForm, csvForm, timeslotForm, Message_Form, createUserForm
+from .models import TimeSlot, Address, CustomUser, PhoneNumber, Business, CurrentTimeSlots,marketing
+from .forms import EmailForm, UserForm, TimeForm, csvForm, timeslotForm, Message_Form, createUserForm, checkBoxForm, optOutForm
 from datetime import datetime
 import random, string, csv, io
 
@@ -45,9 +45,8 @@ def details(request, id):
                 if CurrentTimeSlots.objects.filter(current_timeslots=timeslot):
                     register_flag = 1
                     register_group_flag = 1
-
         update_count(timeslot)
-        return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag})
+        return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag, 'register_group_flag':register_group_flag})
     else:
         invalid = False
         if 'unregister' in request.POST:
@@ -165,7 +164,11 @@ def group_register(request, id):
     form_web = timeslotForm()
     success = False
     success_message = 'Submission Successful'
+    failure = False
+    failure_message = 'Submission Failed. The following users are currently registered to a conflicting timeslot: '
+    failur_message2 = 'Group to large for timeslot'
     invalid = False
+    save_account = []
     order = [
         "Upload a list of emails with 'email' as comlumn header",
     ]
@@ -176,6 +179,8 @@ def group_register(request, id):
         'error_code': error,
         'success': success,
         'success_message': success_message,
+        'failure': failure,
+        'failure_message': failure_message
     }
     if request.method == 'GET':
         return render(request, template, prompt)
@@ -194,8 +199,10 @@ def group_register(request, id):
     for column in csv.reader(io_string, delimiter=',', quotechar="|"):
         array.append([column[0],column[1],column[2]])
     number_of_elements = len(array)
-    # if timeslot.num_signed_up + number_of_elements > timeslot.num_needed:
-        # messages.error(request, 'Group to large for timeslot')
+    if timeslot.num_signed_up + number_of_elements > timeslot.num_needed:
+        prompt['failure']=True
+        prompt['failure_message']= 'Group to large for spots timeslot'
+        return render(request, template, prompt)
         # raise Exception("group_register_0")
     for i in array:
         exists = user_exists(email=i[0])
@@ -203,11 +210,10 @@ def group_register(request, id):
             user_account = exists[1]
             custom_account = CustomUser.objects.get(user_account=user_account)
             if timeslot_available_to_user(request=None, custom_account=custom_account, timeslot=timeslot):
-                continue
-                register_group(user_account=user_account, timeslot=timeslot)
+                register_group(custom_user=custom_account, timeslot=timeslot)
             else:
+                save_account.append(custom_account)
                 continue
-                raise Exception('group_register_1')
         else:
             phone_number = create_phone_number(phone_number=i[2])
             birthday = create_birthday(i[1])
@@ -216,6 +222,11 @@ def group_register(request, id):
             email = i[0]
             custom_user = create_user_from_group_upload(username=username,temp_password=temp_password,email=email,birthday=birthday,phone_number=phone_number)
             register_group(request=request, custom_user=custom_user, timeslot=timeslot, temp_password=temp_password)
+    if save_account:
+        prompt['failure']=True
+        prompt['save_account'] = save_account
+        return render(request, template, prompt)
+    prompt['success'] = True
     return render(request, template, prompt)
 
 @login_required
@@ -226,12 +237,63 @@ def dashboard(request):
         unregister(request, timeslot)
     return render(request, 'Registration/dashboard.html')
 
+def profile(request):
+    template_name = 'Registration/profile.html'
+    form = checkBoxForm()
+    if marketing.objects.filter(opt_in=request.user):
+        form = optOutForm()
+        if request.method == 'POST':
+            form = optOutForm(request.POST)
+            if form.is_valid():
+                m = marketing.objects.all()
+                m[0].remove(request.user)
+                form = checkBoxForm()
+    else:
+        form = checkBoxForm()
+        if request.method == 'POST':
+            form = checkBoxForm(request.POST)
+            if form.is_valid():
+                m = marketing.objects.all()
+                m[0].add(request.user)
+                form = optOutForm
+    context = {
+        'form': form
+    }
+    return render(request, template_name, context)
+
 def thanks(request):
-    return render(request, 'Registration/thanks.html')
+    is_user = 'Thanks for registering! Timeslot details have been sent to your email on file. You can also view the timeslots you have registered for in your dashboard.'
+    context = {
+        'thank_you':None
+    }
+    if request.user.is_authenticated:
+        context['thank_you'] = is_user
+    return render(request, 'Registration/thanks.html', context)
+
+def market(request):
+    form = Message_Form()
+    prompt = 'Send a marketing email to everyone on the site that has opted-in.'
+    template_name = 'Registration/marketing.html'
+    successful = 'Message sent'
+    context= {
+        'form':form,
+        'prompt': prompt
+    }
+    if request.method == 'POST':
+        form = Message_Form(request.POST)
+        if form.is_valid():
+            message = form.cleaned_data['message_form']
+            m = marketing.objects.all()
+            for i in m[0].opt_in.all():
+                sendmail(user_account=i,message=message)
+            context['success'] = successful
+    return render(request, template_name, context)
 
 def create_user(request):
     template = 'Registration/create_user.html'
     invalid = False
+    success = False
+    success_message = 'Account successfully created. A temporary password was sent to your email.'
     error = None
     error_0 = 'Age Restriction'
     error_1 = 'Email Taken'
@@ -240,18 +302,16 @@ def create_user(request):
     context = {
         'invalid': invalid,
         'error_code': error,
-        'create_user_form': create_user_form
+        'create_user_form': create_user_form,
+        'success': success
     }
     if request.method == 'POST':
         cleaned_form = clean_create_user_form(request)
         if cleaned_form:
             username = cleaned_form[0]
-            password = cleaned_form[1]
-            email = cleaned_form[2]
-            birthday = cleaned_form[3]
-            area_code = cleaned_form[4]
-            numbers1 = cleaned_form[5]
-            numbers2 = cleaned_form[6]
+            email = cleaned_form[1]
+            birthday = cleaned_form[2]
+            phone_number = cleaned_form[3]
             valid_age = age_check(birthday)
             if valid_age:
                 result = user_exists(username=username,email=email)
@@ -262,9 +322,15 @@ def create_user(request):
                     elif result[2] == 'username':
                         error = error_2
                 else:
-                    phone_number = create_phone_number(area_code, numbers1, numbers2)
-                    create_user_from_create_user(username, password, email, birthday, phone_number)
-                    return redirect('login')
+                    phone_number = create_phone_number(phone_number=phone_number)
+                    if phone_number == errors()[1]:
+                      error = phone_number  
+                    else:
+                        user_info = create_user_from_create_user(username, email, birthday, phone_number)
+                        sendmail(user_account = user_info[0], temp_password = user_info[1], new_user=True)
+                        context['success'] = True
+                        context['success_message']=success_message
+                        return render(request, template, context)
             else:
                 error = error_0
             
@@ -353,6 +419,8 @@ def timelot_upload(request):
                 num_needed = timeslot_dict['num_needed'], 
                 business_name = business
             )
+            current_timeslots = CurrentTimeSlots.objects.get(current_id=0)
+            current_timeslots.current_timeslots.add(timeslot[1])
             if timeslot[0] == error_1:
                 invalid = True
                 error = error_1
@@ -397,6 +465,8 @@ def timelot_upload(request):
             num_needed = timeslot_dict['num_needed'], 
             business_name = business
         )
+        current_timeslots = CurrentTimeSlots.objects.get(current_id=0)
+        current_timeslots.current_timeslots.add(timeslot[1])
         if timeslot[0] == error_1:
             invalid = True
             error = error_1
@@ -489,12 +559,14 @@ def create_user_from_email(request):
     raise Exception('create_user_from_email_0')
     raise Exception('create_user_from_email_1')
 
-def create_user_from_create_user(username,password,email,birthday,phone_number):
+def create_user_from_create_user(username,email,birthday,phone_number):
+    password = create_temp_password()
     user_account = User.objects.create_user(username,email,password)
     user_account.save()
     custom_user = CustomUser.objects.update_or_create(user_account = user_account, birthday = birthday)[0]
     custom_user.phone_number.add(phone_number)
     custom_user.save()
+    return (user_account, password)
 
 def create_user_from_group_upload(username=None,temp_password=None,email=None,birthday=None,phone_number=None):
     suffic = 1
@@ -523,12 +595,32 @@ def create_birthday(birthday=None):
     date = datetime.strptime(birthday, date_format)
     return date
 
-def create_phone_number(area_code=None, numbers1=None, numbers2=None, phone_number=None):
-    if phone_number:
-        phone_number = phone_number.split('-')
-        area_code = phone_number[0]
-        numbers1 = phone_number[1]
-        numbers2 = phone_number[2]
+def create_phone_number(phone_number=None):
+    phone_number = phone_number.split('-')
+    count = 0
+    for i in phone_number:
+        if count == 0 and len(i) == 3:
+            try:
+                int(i)
+            except:
+                
+                return errors()[1]
+            area_code = i
+        elif count == 1 and len(i) == 3:
+            try:
+                int(i)
+            except:
+                return errors()[1]
+            numbers1 = i
+        elif count == 2 and len(i) == 4:
+            try:
+                int(i)
+            except:
+                return errors()[1]
+            numbers2 = i
+        else:
+            errors()[1]
+        count += 1
     phone_number = PhoneNumber.objects.update_or_create(
             area_code = area_code,
             numbers1 = numbers1,
@@ -688,12 +780,9 @@ def clean_create_user_form(request):
     if form.is_valid():
         username = form.cleaned_data['username']
         email = form.cleaned_data['email']
-        password = form.cleaned_data['password']
         birthday = form.cleaned_data['birthday']
-        area_code = form.cleaned_data['area_code']
-        numbers1 = form.cleaned_data['numbers1']
-        numbers2 = form.cleaned_data['numbers2']
-        return (username,password,email,birthday,area_code,numbers1,numbers2)
+        phone_number = form.cleaned_data['phone_number']
+        return (username,email,birthday,phone_number)
     return False
     raise Exception('clean_create_user_form')
 
@@ -724,14 +813,14 @@ def delete_custom_user(request=None, custom_user=None):
     raise Exception('delete_custom_user')
 
 def clean0():
-    if User.objects.filter(username='jessethomas88'):
-        user_account = User.objects.get(username='jessethomas88')
+    if User.objects.filter(username='test2'):
+        user_account = User.objects.get(username='test2')
         if CustomUser.objects.filter(user_account=user_account):
             custom_user = CustomUser.objects.get(user_account=user_account)
             custom_user.delete()
         user_account.delete()
-    if PhoneNumber.objects.filter(area_code='123',numbers1='456',numbers2='7890'):
-        phone_number = PhoneNumber.objects.get(area_code='123',numbers1='456',numbers2=7890)
+    if PhoneNumber.objects.filter(area_code='123',numbers1='123',numbers2='123'):
+        phone_number = PhoneNumber.objects.get(area_code='123',numbers1='456',numbers2='1234')
         phone_number.delete()
 
 def clean1():
@@ -742,25 +831,32 @@ def clean1():
     business_name = ['CSV Company']
     if TimeSlot.objects.filter(description='This is from CSV Upload'):
         timeslots = TimeSlot.objects.filter(description='This is from CSV Upload')
-        for timeslot in timeslots:
-            timeslot.delete()
+        timeslots.delete()
+        # for timeslot in timeslots:
+        #     timeslot.delete()
     for i in business_name:
         if Business.objects.filter(business_name = i):
-            business = Business.objects.get(business_name=i)
+            business = Business.objects.filter(business_name = i)
+            # business = Business.objects.get(business_name=i)
             business.delete()
     for i in address1:
         if Address.objects.filter(address1 = i):
-            address = Address.objects.get(address1 = i)
+            address = Address.objects.filter(address1 = i)
+            # address = Address.objects.get(address1 = i)
             address.delete()
     for i in range(len(area_code)):
         if PhoneNumber.objects.filter(
             area_code=area_code[i],
             numbers1=numbers1[i],
             numbers2=numbers2[i]):
-            phone_number = PhoneNumber.objects.get(
+            phone_number = PhoneNumber.objects.filter(
             area_code=area_code[i],
             numbers1=numbers1[i],
             numbers2=numbers2[i])
+            # phone_number = PhoneNumber.objects.get(
+            # area_code=area_code[i],
+            # numbers1=numbers1[i],
+            # numbers2=numbers2[i])
             phone_number.delete()
 
 def clean2():
@@ -785,16 +881,30 @@ def clean2():
                 k.delete()
             j.delete()
 
-def sendmail(user_account,timeslot,temp_password=0,new_user=False):
+def sendmail(user_account=None,timeslot=None,temp_password=0,new_user=False,group=False,request=None, message=None):
     sender = 'jessethomascs@gmail.com'
     email = [user_account.email]
     if new_user:
         send_mail(
-            'Volunteer Registration',
-            f'''Thank you for registering. Use the following information to login to your account:
+            'Account Successfully created',
+            f'''Your account was successfully created! Use the following information to login to your account:
             
             Username: {user_account.username}
             Temporary Password: {temp_password}
+
+            To log in follow this localhost:8000/login
+            ''',
+            sender,
+            email
+        )
+    elif group:
+        send_mail(
+            'Account Successfully created',
+            f'''Your account was successfully created by {reques.user.username}! Use the following information to login to your account:
+            
+            Username: {user_account.username}
+            Temporary Password: {temp_password}
+
 
             Timeslot Information
             Event name: {timeslot.event_name}
@@ -807,6 +917,14 @@ def sendmail(user_account,timeslot,temp_password=0,new_user=False):
             sender,
             email
         )
+    elif message:
+        send_mail(
+            'Registration',
+            f'{message}',
+            sender,
+            email
+        )
+        
     else:
         send_mail(
             'Registration',
@@ -821,6 +939,13 @@ def sendmail(user_account,timeslot,temp_password=0,new_user=False):
             sender,
             email
         )
+
+def errors():
+    error_code = {
+        0: 'Valid',
+        1: 'Invalid Phone Number'
+    }
+    return error_code
 
     # if request.method == 'POST':
     #     if loggedIn(request):

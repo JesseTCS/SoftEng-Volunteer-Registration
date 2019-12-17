@@ -7,5 +7,11 @@ User Name: {{ user.username }}
 <br> 
 Email: {{ user.email }}
 <br>
+<form method="post">
+    {% csrf_token %}
+    {{ form }}
+    <br>
+    <input type="submit" value="submit">
+</form>
 <a href="{% url 'password_change' %}"><button type="password_change">change password</button></a>
 {% endblock %}

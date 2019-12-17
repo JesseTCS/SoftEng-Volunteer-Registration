@@ -39,4 +39,9 @@
 <br>
 <p><a href="{% url 'create_user' %}">Create User Account</a></p>
 <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+
+{% if test %}
+hello
+{% endif %}
+
 {% endblock %}
