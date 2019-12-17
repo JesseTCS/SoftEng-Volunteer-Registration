@@ -9,18 +9,18 @@ from .forms import EmailForm, UserForm, TimeForm, csvForm, timeslotForm, Message
 from datetime import datetime
 import random, string, csv, io
 
-# Create your views here.
 def home(request):
     """
     Used to display the homepage
     """
     current_timeslots = CurrentTimeSlots.objects.get(current_id = 0)
+
     if current_timeslots.last_update < current_timeslots.current_date:
         current_timeslots.current()
-    timeslots = current_timeslots.current_timeslots.all()
 
-    # timeslots = TimeSlot.objects.all()
+    timeslots = current_timeslots.current_timeslots.all()
     mass_update_count(timeslots)
+
     return render(request, 'Registration/home.html', {'timeslots': timeslots})
 
 def details(request, id):
@@ -37,22 +37,33 @@ def details(request, id):
     error_2 = 'Timeslot Conlicts with Registered Timeslots'
     error_3 = 'Timeslot unavailable'
     error_message = 'Sorry, we could not perform this action due to: '
+
+    # This happens when first arriving at landing page.
     if request.method == 'GET':
+
         if request.user.is_authenticated:
+
             if timeslot.user.filter(username=request.user.username):
                 unregister_flag = 1
+
             else: 
+
                 if CurrentTimeSlots.objects.filter(current_timeslots=timeslot):
                     register_flag = 1
                     register_group_flag = 1
+
         update_count(timeslot)
+
         return render(request, 'Registration/detail.html', {'timeslot': timeslot, 'email_form': email_form, 'unregister_flag':unregister_flag, 'register_flag': register_flag, 'register_group_flag':register_group_flag})
+    
     else:
         invalid = False
+
         if 'unregister' in request.POST:
             unregister(request, timeslot)
             update_count(timeslot)
             register_flag = 1
+
             return render(
             request,
             'Registration/detail.html', 
@@ -62,13 +73,18 @@ def details(request, id):
             'unregister_flag':unregister_flag,
             'register_flag': register_flag
             })
+
         if CurrentTimeSlots.objects.filter(current_timeslots=timeslot):
+
             if 'register' in request.POST:
                 register_flag = 1
+
                 if timeslot_count_check(timeslot=timeslot):
                     register = registerfunc(request, timeslot)
+
                     if register == error_2:
                         invalid = True
+
                         return render(
                         request,
                         'Registration/detail.html', 
@@ -79,11 +95,15 @@ def details(request, id):
                         'register_flag': register_flag,
                         'error_code': error_2
                         })
+
                     update_count(timeslot)
                     register_flag = 0
                     unregister_flag = 1
+
                     return redirect('thanks')
+
                 invalid = True
+
                 return render(
                     request,
                     'Registration/detail.html', 
@@ -94,11 +114,15 @@ def details(request, id):
                     'register_flag': register_flag,
                     'error_code': error_3
                 })
+
             if 'new_user' in request.POST:
+
                 if timeslot_count_check(timeslot=timeslot):
                     register = register_new_user(request, timeslot)
+
                     if register == error_0:
                         invalid = True
+
                         return render(
                         request,
                         'Registration/detail.html', 
@@ -110,8 +134,10 @@ def details(request, id):
                         'error_message': error_message,
                         'error_code': error_0
                         })
+
                     if register == error_1:
                         invalid = True
+
                         return render(
                         request,
                         'Registration/detail.html', 
@@ -123,9 +149,11 @@ def details(request, id):
                         'error_message': error_message,
                         'error_code': error_1
                         })
+
                     return redirect('thanks')
-                    raise Exception('details')
+
                 invalid = True
+
                 return render(
                     request,
                     'Registration/detail.html', 
@@ -136,13 +164,16 @@ def details(request, id):
                     'register_flag': register_flag,
                     'error_code': error_3
                 })
+
             if 'register_group' in request.POST:
+
                 return redirect('group_register', id)
 
         else:
             invalid = True
             unregister_flag = 0
             register_flag = 0
+
             return render(
                 request,
                 'Registration/detail.html', 
@@ -155,6 +186,10 @@ def details(request, id):
             })
 
 def group_register(request, id):
+    """
+    This function is for allowing a corporate user to upload a csv of emails 
+    to create new users that will be registered for an event.
+    """
     timeslot = get_object_or_404(TimeSlot, pk=id)
     error = None
     error_0 = 'File not a CSV'
@@ -170,7 +205,7 @@ def group_register(request, id):
     invalid = False
     save_account = []
     order = [
-        "Upload a list of emails with 'email' as comlumn header",
+        "Upload a list of emails with 'email', 'birthday', and 'phone number' as column headers, in that order.",
     ]
     prompt = {
         'order': order[0],
@@ -182,38 +217,53 @@ def group_register(request, id):
         'failure': failure,
         'failure_message': failure_message
     }
+
     if request.method == 'GET':
+
         return render(request, template, prompt)
+
     csv_file = request.FILES['csv']
     last4 = csv_file.name[-4:]
+
     if last4 != '.csv':
         invalid = True
         error = error_0
         prompt['invalid'] = invalid
         prompt['error_code'] = error
+
         return render(request, template, prompt)
+
     data_set = csv_file.read().decode('UTF-8')
     io_string = io.StringIO(data_set)
     next(io_string)
     array = []
+
     for column in csv.reader(io_string, delimiter=',', quotechar="|"):
         array.append([column[0],column[1],column[2]])
+
     number_of_elements = len(array)
+
     if timeslot.num_signed_up + number_of_elements > timeslot.num_needed:
         prompt['failure']=True
         prompt['failure_message']= 'Group to large for spots timeslot'
+
         return render(request, template, prompt)
-        # raise Exception("group_register_0")
+
     for i in array:
         exists = user_exists(email=i[0])
+
         if exists[0]:
             user_account = exists[1]
             custom_account = CustomUser.objects.get(user_account=user_account)
+            
             if timeslot_available_to_user(request=None, custom_account=custom_account, timeslot=timeslot):
                 register_group(custom_user=custom_account, timeslot=timeslot)
+            
             else:
                 save_account.append(custom_account)
+
                 continue
+        
         else:
             phone_number = create_phone_number(phone_number=i[2])
             birthday = create_birthday(i[1])
@@ -222,55 +272,84 @@ def group_register(request, id):
             email = i[0]
             custom_user = create_user_from_group_upload(username=username,temp_password=temp_password,email=email,birthday=birthday,phone_number=phone_number)
             register_group(request=request, custom_user=custom_user, timeslot=timeslot, temp_password=temp_password)
+    
     if save_account:
         prompt['failure']=True
         prompt['save_account'] = save_account
+
         return render(request, template, prompt)
+
     prompt['success'] = True
+
     return render(request, template, prompt)
 
 @login_required
 def dashboard(request):
+    """
+    This fucntion provides users with a dashboard to see and unregister for 
+    registered timeslots.
+    """
     if request.method == 'POST':
         timeslot_id = request.POST['timeslot']
         timeslot = TimeSlot.objects.get(id=timeslot_id)
         unregister(request, timeslot)
+
     return render(request, 'Registration/dashboard.html')
 
 def profile(request):
+    """
+    Gives the user a profile page where they can opt-in and out of marketing
+    emails.
+    """
     template_name = 'Registration/profile.html'
     form = checkBoxForm()
+
     if marketing.objects.filter(opt_in=request.user):
         form = optOutForm()
+
         if request.method == 'POST':
             form = optOutForm(request.POST)
+
             if form.is_valid():
                 m = marketing.objects.all()
                 m[0].remove(request.user)
                 form = checkBoxForm()
+    
     else:
         form = checkBoxForm()
+
         if request.method == 'POST':
             form = checkBoxForm(request.POST)
+
             if form.is_valid():
                 m = marketing.objects.all()
                 m[0].add(request.user)
                 form = optOutForm
+
     context = {
         'form': form
     }
+
     return render(request, template_name, context)
 
 def thanks(request):
+    """
+    Provides users with a thank you page when registering for a timeslot
+    """
     is_user = 'Thanks for registering! Timeslot details have been sent to your email on file. You can also view the timeslots you have registered for in your dashboard.'
     context = {
         'thank_you':None
     }
+
     if request.user.is_authenticated:
         context['thank_you'] = is_user
+
     return render(request, 'Registration/thanks.html', context)
 
 def market(request):
+    """
+    Provides a place to send markting emails to those opted in for them. 
+    """
     form = Message_Form()
     prompt = 'Send a marketing email to everyone on the site that has opted-in.'
     template_name = 'Registration/marketing.html'
@@ -279,8 +358,10 @@ def market(request):
         'form':form,
         'prompt': prompt
     }
+
     if request.method == 'POST':
         form = Message_Form(request.POST)
+        
         if form.is_valid():
             message = form.cleaned_data['message_form']
             m = marketing.objects.all()

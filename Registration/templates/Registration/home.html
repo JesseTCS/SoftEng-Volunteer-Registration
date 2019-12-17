@@ -17,7 +17,6 @@
   </thead>
   <tbody>
     {% for timeslot in timeslots %}
-    {% if timeslot.num_signed_up != timeslot.num_needed %}
     <tr>
       <td align="center">{{ timeslot.event_name }}</td>
       <td align="center">{{ timeslot.date }}</td>
@@ -28,7 +27,6 @@
       <td align="center">{{ timeslot.business_name }}</td>
       <td align="center"><a href="{% url 'details' timeslot.id %}">Details</a></td>
     </tr>
-     {% endif %}
      {% endfor %}
   </tbody>
 </table>
